@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>呼吸困難 評価ツール（RDOS / IC-RDOS / MV-RDOS）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#eef2f3; --surface:#ffffff; --ink:#15242b; --muted:#5e7079; --faint:#8a9aa1;
+    --hairline:#d7e0e2; --teal:#11897b; --teal-soft:#e2f1ee; --amber:#c0790f; --amber-soft:#f6ecd9;
+    --red:#c1342b; --red-soft:#f7e2df;
+    --shadow:0 1px 2px rgba(21,36,43,.05),0 8px 30px rgba(21,36,43,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{font-family:"Noto Sans JP",system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.65;padding:28px 18px 60px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto}
+
+  header{margin-bottom:4px}
+  .eyebrow{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--teal);font-weight:500;margin-bottom:8px}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.01em;line-height:1.25}
+  h1 .full{display:block;font-size:12.5px;font-weight:400;color:var(--muted);letter-spacing:0;margin-top:5px}
+
+  .tabs{display:inline-flex;background:#e3eaeb;border:1px solid var(--hairline);border-radius:11px;padding:4px;gap:3px;margin-top:18px;flex-wrap:wrap}
+  .tab{border:none;background:transparent;padding:8px 16px;border-radius:8px;font-family:"JetBrains Mono",monospace;font-size:13px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .14s}
+  .tab.on{background:#fff;color:var(--ink);font-weight:700;box-shadow:0 1px 3px rgba(21,36,43,.12)}
+
+  .lede{margin-top:14px;font-size:13.5px;color:var(--muted);max-width:660px}
+
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px;align-items:start}
+  @media(max-width:760px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--hairline);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+  .card-h{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);font-weight:500;padding:16px 20px 0}
+
+  .input-body{padding:6px 20px 18px}
+  .field{padding:13px 0;border-bottom:1px solid var(--hairline)}
+  .field:last-child{border-bottom:none}
+  .field-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px}
+  .field-label{font-size:14px;font-weight:500}
+  .field-label span{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:1px}
+  .field-unit{font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--faint);flex-shrink:0;padding-left:10px}
+
+  .stepper{display:flex;gap:8px}
+  .stepper button{width:42px;border:1px solid var(--hairline);background:#f7fafa;border-radius:9px;font-size:20px;color:var(--muted);cursor:pointer;line-height:1;font-family:"JetBrains Mono",monospace;transition:background .12s,border-color .12s}
+  .stepper button:hover{background:var(--teal-soft);border-color:var(--teal);color:var(--teal)}
+  .stepper button:active{transform:translateY(1px)}
+  .stepper input{flex:1;text-align:center;font-family:"JetBrains Mono",monospace;font-size:22px;font-weight:500;border:1px solid var(--hairline);border-radius:9px;color:var(--ink);padding:6px 0;width:100%;-moz-appearance:textfield;background:#fff}
+  .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .stepper input:focus{outline:2px solid var(--teal);outline-offset:1px}
+
+  .toggle{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;padding:13px 14px;cursor:pointer;border:1px solid var(--hairline);border-radius:10px;background:#fcfdfd;text-align:left;font-family:inherit;transition:border-color .14s,background .14s}
+  .toggle:hover{border-color:#bcccce}
+  .toggle.on{border-color:var(--amber);background:var(--amber-soft)}
+  .toggle-txt{font-size:13.5px;font-weight:500;line-height:1.4}
+  .toggle-txt span{display:block;font-size:11px;font-weight:400;color:var(--muted);margin-top:2px}
+  .toggle.on .toggle-txt span{color:var(--amber)}
+  .pill{flex-shrink:0;font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.08em;font-weight:700;padding:5px 11px;border-radius:20px;background:#eef2f3;color:var(--faint);min-width:54px;text-align:center;transition:all .14s}
+  .toggle.on .pill{background:var(--amber);color:#fff}
+
+  .seg{display:flex;gap:6px}
+  .seg-btn{flex:1;border:1px solid var(--hairline);background:#fcfdfd;border-radius:9px;padding:9px 5px;font-family:inherit;font-size:12.5px;color:var(--muted);cursor:pointer;transition:all .12s;line-height:1.25;min-width:0}
+  .seg-btn:hover{border-color:#bcccce}
+  .seg-btn.on{border-color:var(--teal);background:var(--teal-soft);color:var(--teal);font-weight:700}
+  .seg-btn.on.alert{border-color:var(--amber);background:var(--amber-soft);color:var(--amber)}
+
+  .result{position:relative}
+  .readout{padding:24px 24px 6px;text-align:center;transition:background .3s}
+  .readout .score{font-family:"JetBrains Mono",monospace;font-size:72px;font-weight:700;line-height:1;letter-spacing:-.02em;transition:color .3s;font-variant-numeric:tabular-nums}
+  .readout .score-label{font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}
+  .verdict{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:700;padding:7px 16px;border-radius:24px;margin-top:6px;background:#fff;transition:color .3s}
+  .verdict .dot{width:8px;height:8px;border-radius:50%}
+
+  .gauge-wrap{padding:8px 24px 20px}
+  .gauge{position:relative;height:46px;margin-top:6px}
+  .gauge-track{position:absolute;top:18px;left:0;right:0;height:9px;border-radius:5px;opacity:.92}
+  .tick{position:absolute;top:9px;width:2px;height:27px;background:var(--ink);opacity:.42}
+  .tick-lbl{position:absolute;top:30px;font-family:"JetBrains Mono",monospace;font-size:10px;color:var(--muted);transform:translateX(-50%);white-space:nowrap}
+  .needle{position:absolute;top:2px;width:3px;height:41px;background:var(--ink);border-radius:2px;transform:translateX(-50%);transition:left .35s cubic-bezier(.34,1.2,.46,1);box-shadow:0 0 0 3px var(--bg)}
+  .needle::before{content:"";position:absolute;top:-7px;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--ink)}
+
+  .interp{margin:0 20px 18px;padding:14px 16px;border-radius:11px;background:#f5f8f8;border-left:3px solid var(--teal);font-size:13px;color:#34464d;transition:border-color .3s}
+  .interp b{color:var(--ink)}
+
+  .breakdown{border-top:1px solid var(--hairline);padding:16px 20px 20px}
+  .formula{font-family:"JetBrains Mono",monospace;font-size:10.5px;color:var(--muted);margin-bottom:12px;line-height:1.7}
+  .terms{display:flex;flex-direction:column;gap:1px}
+  .term{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;padding:6px 0;border-bottom:1px dashed var(--hairline);gap:10px}
+  .term:last-child{border-bottom:none}
+  .term .t-name{color:var(--muted)}
+  .term .t-val{font-family:"JetBrains Mono",monospace;font-weight:500;font-variant-numeric:tabular-nums;flex-shrink:0}
+  .term.neg .t-val{color:var(--teal)}
+  .term.pos .t-val{color:var(--amber)}
+  .term.total{margin-top:6px;padding-top:11px;border-top:2px solid var(--ink);border-bottom:none}
+  .term.total .t-name{color:var(--ink);font-weight:700;font-size:13.5px}
+  .term.total .t-val{font-size:16px;font-weight:700;color:var(--ink)}
+
+  details.ref{margin-top:18px;background:var(--surface);border:1px solid var(--hairline);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+  details.ref summary{list-style:none;cursor:pointer;padding:16px 20px;font-size:13.5px;font-weight:500;display:flex;justify-content:space-between;align-items:center}
+  details.ref summary::-webkit-details-marker{display:none}
+  details.ref summary .chev{font-family:"JetBrains Mono",monospace;color:var(--faint);transition:transform .2s}
+  details.ref[open] summary .chev{transform:rotate(90deg)}
+  .ref-body{padding:0 20px 20px;font-size:13px;color:#34464d}
+  .ref-body h3{font-size:12px;font-family:"JetBrains Mono",monospace;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);margin:16px 0 7px;font-weight:500}
+  .ref-body p{margin-bottom:8px}
+  .ref-body ul{margin:0 0 8px;padding-left:18px}
+  .ref-body li{margin-bottom:5px}
+  .ref-body b{color:var(--ink)}
+  .cite{font-size:11.5px;color:var(--faint);line-height:1.6;padding-top:6px;border-top:1px solid var(--hairline);margin-top:14px}
+  .cite a{color:var(--muted)}
+
+  footer{text-align:center;margin-top:26px;font-size:11px;color:var(--faint);line-height:1.7}
+  .disclaimer{max-width:600px;margin:0 auto}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Dyspnoea — Observation Scales</div>
+    <h1>呼吸困難 評価ツール
+      <span class="full">RDOS ／ IC-RDOS ／ MV-RDOS — 自己申告できない患者の呼吸困難（dyspnoea）推定</span>
+    </h1>
+    <div class="tabs" id="tabs">
+      <button class="tab" data-scale="rdos">RDOS</button>
+      <button class="tab" data-scale="ic">IC-RDOS</button>
+      <button class="tab on" data-scale="mv">MV-RDOS</button>
+    </div>
+    <p class="lede" id="lede"></p>
+  </header>
+
+  <div class="grid">
+    <div class="card">
+      <div class="card-h">観察項目の入力</div>
+      <div class="input-body" id="inputBody"></div>
+    </div>
+
+    <div class="card result">
+      <div class="card-h">スコア</div>
+      <div class="readout" id="readout">
+        <div class="score" id="score">0</div>
+        <div class="score-label" id="scoreLabel">SCORE</div>
+        <div class="verdict" id="verdict"><span class="dot"></span><span id="verdictTxt">—</span></div>
+      </div>
+      <div class="gauge-wrap"><div class="gauge" id="gauge"></div></div>
+      <div class="interp" id="interp"></div>
+      <div class="breakdown">
+        <div class="formula" id="formula"></div>
+        <div class="terms" id="terms"></div>
+      </div>
+    </div>
+  </div>
+
+  <details class="ref">
+    <summary>スケールの使い分け・カットオフ・参考文献 <span class="chev">&#9656;</span></summary>
+    <div class="ref-body">
+      <h3>3つのスケールの使い分け</h3>
+      <ul>
+        <li><b>RDOS</b>（8項目, 0〜16点）… 緩和ケアから一般病棟まで、自己申告できない／認知機能が低下した患者全般に使える元祖スケール。非挿管も含みます。</li>
+        <li><b>IC-RDOS</b>（5項目, 加重式）… ICU患者向けに簡略化。<b>酸素投与の有無</b>を含み、非挿管のICU患者にも適します。</li>
+        <li><b>MV-RDOS</b>（5項目, 加重式）… 挿管・人工呼吸患者向け。酸素投与の代わりに<b>呼吸数</b>を組み込みます。</li>
+      </ul>
+      <p>いずれも観察スケールです。意思疎通が可能なら、まずVAS／NRSによる自己申告を優先してください（ERS/ESICM 2024 アルゴリズム）。</p>
+
+      <h3>カットオフ</h3>
+      <ul>
+        <li><b>RDOS</b>：0–2＝呼吸窮迫なし〜ごく軽度、<b>3＝軽度</b>（distress present の閾値）、4–6＝中等度、<b>≥7＝重度</b>（Campbell 2015/2017）。</li>
+        <li><b>IC-RDOS ≥ 2.4</b>：臨床的に重要な呼吸困難が likely（ERS/ESICM アルゴリズム, Persichini 2015 由来）。</li>
+        <li><b>MV-RDOS ≥ 2.6</b>：臨床的に重要な呼吸困難（VAS &gt;30 mm）が高確率。さらに <b>&gt;4 前後</b>は特異度が非常に高い領域（SBT予測で2分時4.3・15分時4.5は特異度96%）。</li>
+      </ul>
+
+      <h3>SBT（自発呼吸トライアル）との関連</h3>
+      <p>ready-to-wean基準を満たした患者でも、SBT開始前に約17%が MV-RDOS ≥2.6 を示し、単施設コホートではそれらは全例がSBTに失敗しました。SBT前・2分・15分のMV-RDOSはSBT失敗を高い特異度で予測し、不要な呼吸苦への曝露を減らす目的で「開始しない／早期中止」の補助となり得ます（探索的・単施設研究）。</p>
+
+      <h3>計算式</h3>
+      <ul>
+        <li>RDOS＝8項目（心拍数・呼吸数・落ち着きのなさ・頸部筋使用・奇異性呼吸・呼気終末のうめき・鼻翼呼吸・恐怖表情）を各0〜2点で合計。</li>
+        <li>IC-RDOS＝3.3 +（心拍数/65）+ 頸部筋 + 奇異性呼吸 + 恐怖表情 + 酸素投与。各項目あり+1/なし−1、酸素は±0.7。</li>
+        <li>MV-RDOS＝3.3 +（心拍数/65）+（呼吸数/50）+ 頸部筋 + 奇異性呼吸 + 恐怖表情。各項目あり+1/なし−1。</li>
+      </ul>
+
+      <div class="cite">
+        参考文献：<br>
+        Decavèle M, et al. Respiratory distress observation scales to predict weaning outcome. <i>Critical Care</i> 2022;26:162.<br>
+        Demoule A, et al. Dyspnoea in acutely ill mechanically ventilated adult patients: an ERS/ESICM statement. <i>Eur Respir J</i> 2024;63:2300347.<br>
+        Campbell ML, et al. A Respiratory Distress Observation Scale for patients unable to self-report dyspnea. <i>J Palliat Med</i> 2010;13:285–290.<br>
+        Campbell ML, Kero KK, Templin TN. Mild, moderate, and severe intensity cut-points for the RDOS. <i>Heart Lung</i> 2017;46:14–17.<br>
+        Persichini R, et al. Diagnostic accuracy of respiratory distress observation scales (IC-RDOS). <i>Anesthesiology</i> 2015;123:830–837.<br>
+        Decavèle M, et al. The MV-RDOS as a surrogate of self-reported dyspnoea in intubated patients. <i>Eur Respir J</i> 2018;52:1800598.<br>
+        オンライン計算機：<a href="https://dos-calc.pvsc.fr" target="_blank" rel="noopener">dos-calc.pvsc.fr</a>
+      </div>
+    </div>
+  </details>
+
+  <footer>
+    <p class="disclaimer">本ツールは臨床判断の補助を目的とした計算機であり、診断や治療方針の決定に代わるものではありません。最終的な判断は担当医が患者の全体像を踏まえて行ってください。</p>
+  </footer>
+</div>
+
+<script>
+(function(){
+  var $=function(id){return document.getElementById(id)};
+
+  var SCALES={
+    rdos:{
+      name:'RDOS', decimals:0, domain:[0,16],
+      lede:'自己申告ができない患者全般（緩和ケア〜一般病棟、非挿管を含む）で呼吸窮迫を評価する8項目の観察スケールです。各項目を0〜2点で評価します。',
+      formula:'8項目を各 0〜2 点で評価して合計（範囲 0〜16）',
+      ticks:[{v:3,lbl:'3'},{v:7,lbl:'7'}],
+      inputs:[
+        {kind:'ord', key:'hr',       label:'心拍数', unit:'beats / min', opts:[['&lt;90',0],['90–109',1],['≥110',2]]},
+        {kind:'ord', key:'rr',       label:'呼吸数', unit:'breaths / min', opts:[['≤18',0],['19–30',1],['&gt;30',2]]},
+        {kind:'ord', key:'restless', label:'落ち着きのなさ', sub:'無目的な体動', opts:[['なし',0],['時折・わずか',1],['頻繁',2]]},
+        {kind:'ord', key:'neck',     label:'吸気時の頸部筋使用', sub:'鎖骨の挙上', opts:[['なし',0],['わずか',1],['著明',2]]},
+        {kind:'ord', key:'paradox',  label:'奇異性呼吸', sub:'吸気時に腹部が陥凹', opts:[['なし',0],['あり',2]]},
+        {kind:'ord', key:'grunt',    label:'呼気終末のうめき声', sub:'うなるような声', opts:[['なし',0],['あり',2]]},
+        {kind:'ord', key:'nasal',    label:'鼻翼呼吸', sub:'吸気時の鼻翼の動き', opts:[['なし',0],['あり',2]]},
+        {kind:'ord', key:'fear',     label:'恐怖の表情', sub:'開眼・緊張・開口など', opts:[['なし',0],['あり',2]]}
+      ],
+      tiers:[
+        {max:3,        c:'--teal',  s:'--teal-soft',  label:'呼吸窮迫なし〜ごく軽度', note:function(s){return '<b>RDOS '+s+'</b>（0–2）。呼吸窮迫は認めない〜ごく軽度と判断されます。経過を観察してください。';}},
+        {max:4,        c:'--amber', s:'--amber-soft', label:'軽度の呼吸窮迫',         note:function(s){return '<b>RDOS '+s+'</b>（=3）。軽度の呼吸窮迫が示唆されます（distress present の閾値）。原因検索と対応を検討してください。';}},
+        {max:7,        c:'--amber', s:'--amber-soft', label:'中等度の呼吸窮迫',       note:function(s){return '<b>RDOS '+s+'</b>（4–6）。中等度の呼吸窮迫が示唆されます。緩和介入を検討してください。';}},
+        {max:Infinity, c:'--red',   s:'--red-soft',   label:'重度の呼吸窮迫',         note:function(s){return '<b>RDOS '+s+'</b>（≥7）。重度の呼吸窮迫が示唆されます。速やかな評価と緩和介入を行ってください。';}}
+      ],
+      compute:function(st){
+        var keys=['hr','rr','restless','neck','paradox','grunt','nasal','fear'];
+        var score=0, terms=[];
+        this.inputs.forEach(function(it){
+          var v=st[it.key]||0; score+=v;
+          var lbl=optLabel(it,v);
+          terms.push({name:it.label+'（'+lbl+'）', disp:String(v), tone:v>0?'pos':'neutral', plain:true});
+        });
+        return {score:score, terms:terms};
+      }
+    },
+
+    ic:{
+      name:'IC-RDOS', decimals:1, domain:[0,10],
+      lede:'ICUで自己申告ができない患者（非挿管を含む）向けに簡略化された5項目スケールです。酸素投与の有無を含みます。',
+      formula:'3.3 + (HR/65) + 頸部筋 + 奇異性呼吸 + 恐怖表情 + 酸素投与　／　あり = +1, なし = −1（酸素は ±0.7）',
+      ticks:[{v:2.4,lbl:'2.4'}],
+      inputs:[
+        {kind:'num', key:'hr',      label:'心拍数', unit:'beats / min', def:90, min:0, max:250},
+        {kind:'bin', key:'neck',    label:'吸気時の頸部筋使用', sub:'鎖骨の挙上を伴う努力呼吸'},
+        {kind:'bin', key:'paradox', label:'奇異性呼吸', sub:'吸気時に腹部が陥凹する'},
+        {kind:'bin', key:'fear',    label:'恐怖の表情', sub:'開眼・眉間のしわ・開口など'},
+        {kind:'bin', key:'o2',      label:'酸素投与', sub:'酸素を投与している（±0.7点）'}
+      ],
+      tiers:[
+        {max:2.4,      c:'--teal',  s:'--teal-soft',  label:'呼吸困難の可能性は低い', note:function(s){return '<b>IC-RDOS '+s+'</b>（&lt;2.4）。臨床的に重要な呼吸困難の可能性は低めです。経過を観察してください。';}},
+        {max:Infinity, c:'--amber', s:'--amber-soft', label:'呼吸困難が示唆される',   note:function(s){return '<b>IC-RDOS '+s+'</b>（≥2.4）。自己申告できないICU患者で臨床的に重要な呼吸困難が示唆されます。原因検索と緩和介入（酸素化・体位・不安への対応など）を検討してください。';}}
+      ],
+      compute:function(st){
+        var hr=num(st.hr), n=bin(st.neck), p=bin(st.paradox), f=bin(st.fear), o=st.o2?0.7:-0.7;
+        var score=3.3 + hr/65 + n + p + f + o;
+        var terms=[
+          {name:'基礎値', disp:'3.30', tone:'neutral'},
+          {name:'心拍数 '+hr+' / 65', disp:'+ '+(hr/65).toFixed(2), tone:'pos'},
+          tog('頸部筋使用', st.neck), tog('奇異性呼吸', st.paradox), tog('恐怖の表情', st.fear),
+          {name:'酸素投与（'+(st.o2?'あり':'なし')+'）', disp:(st.o2?'+ ':'− ')+'0.70', tone:st.o2?'pos':'neg'}
+        ];
+        return {score:score, terms:terms};
+      }
+    },
+
+    mv:{
+      name:'MV-RDOS', decimals:1, domain:[1,10],
+      lede:'自己申告が困難な挿管・人工呼吸患者で呼吸困難を推定します。意思疎通が可能なら、まずVAS／NRSによる自己申告を優先してください。',
+      formula:'3.3 + (HR/65) + (RR/50) + 頸部筋 + 奇異性呼吸 + 恐怖表情　／　あり = +1, なし = −1',
+      ticks:[{v:2.6,lbl:'2.6'},{v:4.3,lbl:'4.3'}],
+      inputs:[
+        {kind:'num', key:'hr',      label:'心拍数', unit:'beats / min', def:90, min:0, max:250},
+        {kind:'num', key:'rr',      label:'呼吸数', unit:'breaths / min', def:20, min:0, max:80},
+        {kind:'bin', key:'neck',    label:'吸気時の頸部筋使用', sub:'鎖骨の挙上を伴う努力呼吸'},
+        {kind:'bin', key:'paradox', label:'奇異性呼吸', sub:'吸気時に腹部が陥凹する'},
+        {kind:'bin', key:'fear',    label:'恐怖の表情', sub:'開眼・眉間のしわ・開口など'}
+      ],
+      tiers:[
+        {max:2.6,      c:'--teal',  s:'--teal-soft',  label:'呼吸困難の可能性は低い', note:function(s){return '<b>MV-RDOS '+s+'</b>（&lt;2.6）。臨床的に重要な呼吸困難（VAS &gt;30 mm）が存在する可能性は低めです。経過観察を継続し、項目の変化を再評価してください。';}},
+        {max:4.3,      c:'--amber', s:'--amber-soft', label:'呼吸困難が示唆される',   note:function(s){return '<b>MV-RDOS '+s+'</b>（≥2.6）。臨床的に重要な呼吸困難が示唆されます。原因検索とともにventilator設定や非呼吸性ドライブの是正など緩和介入を検討してください。SBT中であれば中止を考慮します。';}},
+        {max:Infinity, c:'--red',   s:'--red-soft',   label:'強く呼吸困難が示唆される', note:function(s){return '<b>MV-RDOS '+s+'</b>（&gt;4 前後）。特異度の高い領域で、呼吸困難の存在がより確実に示唆されます。速やかな原因検索と緩和介入、SBT中であれば早期中止を検討してください。';}}
+      ],
+      compute:function(st){
+        var hr=num(st.hr), rr=num(st.rr), n=bin(st.neck), p=bin(st.paradox), f=bin(st.fear);
+        var score=3.3 + hr/65 + rr/50 + n + p + f;
+        var terms=[
+          {name:'基礎値', disp:'3.30', tone:'neutral'},
+          {name:'心拍数 '+hr+' / 65', disp:'+ '+(hr/65).toFixed(2), tone:'pos'},
+          {name:'呼吸数 '+rr+' / 50', disp:'+ '+(rr/50).toFixed(2), tone:'pos'},
+          tog('頸部筋使用', st.neck), tog('奇異性呼吸', st.paradox), tog('恐怖の表情', st.fear)
+        ];
+        return {score:score, terms:terms};
+      }
+    }
+  };
+
+  function num(v){v=parseInt(v,10);return isNaN(v)?0:Math.max(0,v);}
+  function bin(v){return v?1:-1;}
+  function tog(name,on){return {name:name+'（'+(on?'あり':'なし')+'）', disp:(on?'+ ':'− ')+'1.00', tone:on?'pos':'neg'};}
+  function optLabel(it,v){var m='';it.opts.forEach(function(o){if(o[1]===v)m=o[0];});return m.replace(/&lt;/g,'<').replace(/&gt;/g,'>');}
+
+  // independent state per scale
+  var states={
+    rdos:{hr:0,rr:0,restless:0,neck:0,paradox:0,grunt:0,nasal:0,fear:0},
+    ic:{hr:90,neck:false,paradox:false,fear:false,o2:false},
+    mv:{hr:90,rr:20,neck:false,paradox:false,fear:false}
+  };
+  var active='mv';
+
+  function buildInputs(key){
+    var sc=SCALES[key], st=states[key], html='';
+    sc.inputs.forEach(function(it){
+      html+='<div class="field">';
+      html+='<div class="field-top"><span class="field-label">'+it.label+(it.sub?'<span>'+it.sub+'</span>':'')+'</span>'+(it.unit?'<span class="field-unit">'+it.unit+'</span>':'')+'</div>';
+      if(it.kind==='num'){
+        html+='<div class="stepper">'
+            +'<button type="button" data-step="'+it.key+'" data-d="-1">−</button>'
+            +'<input type="number" data-num="'+it.key+'" value="'+st[it.key]+'" min="'+(it.min||0)+'" max="'+(it.max||999)+'" inputmode="numeric">'
+            +'<button type="button" data-step="'+it.key+'" data-d="1">+</button></div>';
+      } else if(it.kind==='bin'){
+        html+='<button type="button" class="toggle'+(st[it.key]?' on':'')+'" data-bin="'+it.key+'">'
+            +'<span class="toggle-txt">'+(st[it.key]?'あり':'なし')+'</span>'
+            +'<span class="pill">'+(st[it.key]?'あり':'なし')+'</span></button>';
+      } else if(it.kind==='ord'){
+        html+='<div class="seg" data-ord="'+it.key+'">';
+        it.opts.forEach(function(o){
+          var on=st[it.key]===o[1];
+          html+='<button type="button" class="seg-btn'+(on?' on':'')+(on&&o[1]>0?' alert':'')+'" data-val="'+o[1]+'">'+o[0]+'</button>';
+        });
+        html+='</div>';
+      }
+      html+='</div>';
+    });
+    $('inputBody').innerHTML=html;
+    bindInputs(key);
+  }
+
+  function bindInputs(key){
+    var st=states[key], sc=SCALES[key];
+    $('inputBody').querySelectorAll('[data-step]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var k=b.getAttribute('data-step'), d=parseInt(b.getAttribute('data-d'),10);
+        st[k]=Math.max(0,num(st[k])+d);
+        $('inputBody').querySelector('[data-num="'+k+'"]').value=st[k];
+        update();
+      });
+    });
+    $('inputBody').querySelectorAll('[data-num]').forEach(function(inp){
+      inp.addEventListener('input',function(){st[inp.getAttribute('data-num')]=num(inp.value);update();});
+    });
+    $('inputBody').querySelectorAll('[data-bin]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var k=btn.getAttribute('data-bin'); st[k]=!st[k];
+        btn.classList.toggle('on',st[k]);
+        btn.querySelector('.toggle-txt').textContent=st[k]?'あり':'なし';
+        btn.querySelector('.pill').textContent=st[k]?'あり':'なし';
+        update();
+      });
+    });
+    $('inputBody').querySelectorAll('[data-ord]').forEach(function(seg){
+      var k=seg.getAttribute('data-ord');
+      seg.querySelectorAll('.seg-btn').forEach(function(b){
+        b.addEventListener('click',function(){
+          st[k]=parseInt(b.getAttribute('data-val'),10);
+          seg.querySelectorAll('.seg-btn').forEach(function(x){
+            var on=parseInt(x.getAttribute('data-val'),10)===st[k];
+            x.classList.toggle('on',on);
+            x.classList.toggle('alert',on&&st[k]>0);
+          });
+          update();
+        });
+      });
+    });
+  }
+
+  function pct(sc,v){var d=sc.domain;return Math.max(0,Math.min(100,(v-d[0])/(d[1]-d[0])*100));}
+
+  function buildGauge(key){
+    var sc=SCALES[key], stops=[], prev=0;
+    sc.tiers.forEach(function(t){
+      var up=isFinite(t.max)?pct(sc,t.max):100;
+      var col='var('+t.c+')';
+      stops.push(col+' '+prev+'%', col+' '+up+'%');
+      prev=up;
+    });
+    var html='<div class="gauge-track" style="background:linear-gradient(90deg,'+stops.join(',')+')"></div>';
+    sc.ticks.forEach(function(tk){
+      var x=pct(sc,tk.v);
+      html+='<div class="tick" style="left:'+x+'%"></div><div class="tick-lbl" style="left:'+x+'%">'+tk.lbl+'</div>';
+    });
+    html+='<div class="needle" id="needle" style="left:0%"></div>';
+    $('gauge').innerHTML=html;
+  }
+
+  function getTier(sc,score){
+    for(var i=0;i<sc.tiers.length;i++){if(score<sc.tiers[i].max)return sc.tiers[i];}
+    return sc.tiers[sc.tiers.length-1];
+  }
+
+  function update(){
+    var sc=SCALES[active], st=states[active];
+    var r=sc.compute(st);
+    var s=sc.decimals===0?String(r.score):r.score.toFixed(1);
+    $('score').textContent=s;
+    $('scoreLabel').textContent=sc.name;
+
+    var tier=getTier(sc,r.score);
+    var col='var('+tier.c+')', soft='var('+tier.s+')';
+    $('score').style.color=col;
+    $('readout').style.background=soft;
+    var v=$('verdict'); v.style.color=col; v.querySelector('.dot').style.background=col;
+    $('verdictTxt').textContent=tier.label;
+    var interp=$('interp'); interp.style.borderColor=col; interp.innerHTML=tier.note(s);
+
+    var nd=$('needle'); if(nd) nd.style.left=pct(sc,r.score)+'%';
+
+    var html='';
+    r.terms.forEach(function(t){
+      var cls=t.tone==='pos'?'pos':(t.tone==='neg'?'neg':'');
+      html+='<div class="term '+cls+'"><span class="t-name">'+t.name+'</span><span class="t-val">'+t.disp+'</span></div>';
+    });
+    html+='<div class="term total"><span class="t-name">'+sc.name+'</span><span class="t-val">'+s+'</span></div>';
+    $('terms').innerHTML=html;
+  }
+
+  function switchTo(key){
+    active=key;
+    $('tabs').querySelectorAll('.tab').forEach(function(t){t.classList.toggle('on',t.getAttribute('data-scale')===key);});
+    $('lede').textContent=SCALES[key].lede;
+    $('formula').textContent=SCALES[key].formula;
+    buildInputs(key);
+    buildGauge(key);
+    update();
+  }
+
+  $('tabs').querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click',function(){switchTo(t.getAttribute('data-scale'));});
+  });
+
+  switchTo('mv');
+})();
+</script>
+</body>
+</html>
